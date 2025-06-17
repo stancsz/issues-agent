@@ -1,0 +1,36 @@
+name: Issue Coding Agent
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  issue-coding-agent:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r coding-agent/requirements.txt
+
+      - name: Run Coding Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          REPO_NAME: ${{ github.repository }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          python coding-agent/agent.py
