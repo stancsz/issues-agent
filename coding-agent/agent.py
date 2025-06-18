@@ -45,8 +45,8 @@ def openai_suggest_files(issue_body, repo_file_list):
         f"Files in repo:\n" + "\n".join(repo_file_list) + "\n"
         "Respond with a comma-separated list of file paths."
     )
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+    response = openai.resources.chat.completions.create(
+        model="gpt-4.1",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=128,
         temperature=0
@@ -63,8 +63,8 @@ def openai_modify_file(issue_body, file_path, file_content):
         f"File: {file_path}\n"
         f"Current content:\n{file_content}\n"
     )
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
+    response = openai.resources.chat.completions.create(
+        model="gpt-4.1",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=4096,
         temperature=0
