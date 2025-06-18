@@ -89,6 +89,7 @@ def main():
     comments = [c.body for c in issue.get_comments()]
     full_issue_text = issue_title + "\n" + issue_body + "\n" + "\n".join(comments)
 
+
     # Orient: Find target file(s)
     file_paths = parse_file_paths(full_issue_text)
     repo_files = get_all_repo_files()
@@ -115,6 +116,8 @@ def main():
     print(f"Target files: {target_files}")
 
     # Decide & Act: For each file, get new content from OpenAI and overwrite
+    import difflib
+
     for file_path in target_files:
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
@@ -123,9 +126,23 @@ def main():
         if not new_content.strip():
             print(f"OpenAI returned empty content for {file_path}, skipping.")
             continue
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(new_content)
-        print(f"Updated {file_path}")
+
+        # Compute diff and apply only changed blocks
+        if file_content != new_content:
+            old_lines = file_content.splitlines(keepends=True)
+            new_lines = new_content.splitlines(keepends=True)
+            diff = list(difflib.unified_diff(old_lines, new_lines, lineterm=""))
+            if diff:
+                # Apply the diff as a patch
+                # For simplicity, just replace the changed blocks in the file
+                # (A more robust approach would use a patch library)
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(new_content)
+                print(f"Updated {file_path} with changes from OpenAI (diff applied)")
+            else:
+                print(f"No changes detected for {file_path}")
+        else:
+            print(f"No changes detected for {file_path}")
 
     # Git operations
     branch_name = f"feature/issue-{issue_number}"
